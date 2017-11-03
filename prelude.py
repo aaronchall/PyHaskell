@@ -265,14 +265,77 @@ import builtins
 
 def bangbang(list_of_a, integer) -> 'a':
     """(!!) :: [a] -> Int -> a
+    
     """
-($) :: (a -> b) -> a -> b
-($!) :: (a -> b) -> a -> b
-(&&) :: Bool -> Bool -> Bool
-(++) :: [a] -> [a] -> [a]
-(.) :: (b -> c) -> (a -> b) -> a -> c
-(<$>) :: Functor f => (a -> b) -> f a -> f b
-(=<<) :: Monad m => (a -> m b) -> m a -> m b
+def cash(fn, a) -> 'b':
+    """($) :: (a -> b) -> a -> b
+    ($)                     :: (a -> b) -> a -> b
+    f $ x                   =  f x
+    application operator - useful because Haskell applies 
+    fn a b
+    like python: fn(a, b)
+    but sometimes we want haskell to do fn(a(b)), and cash lets us write it:
+    fn $ a b
+    f $ g $ h x  =  f (g (h x))
+    """
+    return fn(a)
+
+def cashbang(fn, a) -> 'b':
+    """($!) :: (a -> b) -> a -> b
+    unsure why different from cash. 
+    Haskell source says:
+    -- | Strict (call-by-value) application operator. It takes a function and an
+    -- argument, evaluates the argument to weak head normal form (WHNF), then calls
+    -- the function with that value.
+    
+    ($!)                    :: (a -> b) -> a -> b
+    f $! x                  = let !vx = x in f vx  -- see #2273
+    Perhaps it allows us to treat functions as arguments?
+    Haskell wiki says:
+    
+    "An expression is in weak head normal form (WHNF), if it is either:
+
+    - a constructor (eventually applied to arguments) like True, Just (square 42) or (:) 1
+    - a built-in function applied to too few arguments (perhaps none) like (+) 2 or sqrt.
+    - or a lambda abstraction \x -> expression."
+    Since Python treats functions as objects until called, maybe this is the same as cash
+    or maybe we should return it as a partial application that would require being called?
+    """
+    return fn(a)
+    # or maybe
+    return lambda: fn(a)
+    
+def andand(a_bool, another_bool) -> bool:
+    """(&&) :: Bool -> Bool -> Bool
+    since Python treats all objects as booleans 
+    and `and` returns the first thing if false and the second if true
+    this is simply:
+    """
+    return a_bool and another_bool
+
+def plusplus(list_of_as, another_list_of_as):
+    """(++) :: [a] -> [a] -> [a]
+    Append. list concatenation, Python uses the `+` operator
+    this is also for strings, in Haskell a list of chars, so same for Python as well.
+    """
+    return list_of_as + another_list_of_as
+
+def dot(fn_b_c, fn_a_b, a) -> 'c':
+    """(.) :: (b -> c) -> (a -> b) -> a -> c
+    (.) f g = \x -> f (g x)
+    compose operator. Haskel uses infix:
+    
+    """
+    return fn_b_c(fn_a_b(a))
+
+def whattttsit():
+    """(<$>) :: Functor f => (a -> b) -> f a -> f b
+    """
+
+def whatsit():
+    """(=<<) :: Monad m => (a -> m b) -> m a -> m b
+    """
+    
 class Functor f => Applicative (f :: * -> *) where
   pure :: a -> f a
   (<*>) :: f (a -> b) -> f a -> f b
