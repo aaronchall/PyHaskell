@@ -1,7 +1,15 @@
 # PyHaskell
 Rewriting Haskell modules and libraries in Python.
 
-Let's start with prelude!
+We care about the function signatures, not the implementation.
+For example, consider a function in Haskell that operates on 
+what is semantically a list, taking other arguments, and
+then returns a list. 
+
+We don't care how Haskell did it. We'll do the
+correct semantic thing for Python.
+
+Let's start with Prelude!
 
 Reference the builtins from the `builtins` module:
 
