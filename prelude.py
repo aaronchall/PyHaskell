@@ -267,7 +267,9 @@ def bangbang(list_of_a, integer) -> 'a':
     """(!!) :: [a] -> Int -> a
     
     """
-def cash(fn, a) -> 'b':
+    return list_of_a[integer]
+  
+def cash(fn, *args) -> 'b':
     """($) :: (a -> b) -> a -> b
     ($)                     :: (a -> b) -> a -> b
     f $ x                   =  f x
@@ -278,11 +280,12 @@ def cash(fn, a) -> 'b':
     fn $ a b
     f $ g $ h x  =  f (g (h x))
     """
-    return fn(a)
+    return fn(*args)
 
-def cashbang(fn, a) -> 'b':
+def cashbang(fn, *args) -> 'b':
     """($!) :: (a -> b) -> a -> b
-    unsure why different from cash. 
+    According to Stack Overflow - strict function application.
+    Starts to evaluate arguments *before* calling the function.
     Haskell source says:
     -- | Strict (call-by-value) application operator. It takes a function and an
     -- argument, evaluates the argument to weak head normal form (WHNF), then calls
@@ -301,9 +304,7 @@ def cashbang(fn, a) -> 'b':
     Since Python treats functions as objects until called, maybe this is the same as cash
     or maybe we should return it as a partial application that would require being called?
     """
-    return fn(a)
-    # or maybe
-    return lambda: fn(a)
+    return cash(fn, *args) # since Python does strict evaluation
     
 def andand(a_bool, another_bool) -> bool:
     """(&&) :: Bool -> Bool -> Bool
@@ -311,7 +312,7 @@ def andand(a_bool, another_bool) -> bool:
     and `and` returns the first thing if false and the second if true
     this is simply:
     """
-    return a_bool and another_bool
+    return bool(a_bool and another_bool)
 
 def plusplus(list_of_as, another_list_of_as):
     """(++) :: [a] -> [a] -> [a]
@@ -323,6 +324,7 @@ def plusplus(list_of_as, another_list_of_as):
 def dot(fn_b_c, fn_a_b, a) -> 'c':
     """(.) :: (b -> c) -> (a -> b) -> a -> c
     (.) f g = \x -> f (g x)
+    f . g x
     compose operator. Haskel uses infix:
     
     """
