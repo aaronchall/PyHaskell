@@ -269,20 +269,20 @@ def bangbang(list_of_a, integer) -> 'a':
     """
     return list_of_a[integer]
   
-def cash(fn, *args) -> 'b':
+def apply(fn, *args) -> 'b':
     """($) :: (a -> b) -> a -> b
     ($)                     :: (a -> b) -> a -> b
     f $ x                   =  f x
     application operator - useful because Haskell applies 
     fn a b
     like python: fn(a, b)
-    but sometimes we want haskell to do fn(a(b)), and cash lets us write it:
+    but sometimes we want haskell to do fn(a(b)), and apply lets us write it:
     fn $ a b
     f $ g $ h x  =  f (g (h x))
     """
     return fn(*args)
 
-def cashbang(fn, *args) -> 'b':
+def applystrict(fn, *args) -> 'b':
     """($!) :: (a -> b) -> a -> b
     According to Stack Overflow - strict function application.
     Starts to evaluate arguments *before* calling the function.
@@ -314,7 +314,7 @@ def andand(a_bool, another_bool) -> bool:
     """
     return bool(a_bool and another_bool)
 
-def plusplus(list_of_as, another_list_of_as):
+def concat(list_of_as, another_list_of_as):
     """(++) :: [a] -> [a] -> [a]
     Append. list concatenation, Python uses the `+` operator
     this is also for strings, in Haskell a list of chars, so same for Python as well.
@@ -332,6 +332,7 @@ def dot(fn_b_c, fn_a_b, a) -> 'c':
 
 def whattttsit():
     """(<$>) :: Functor f => (a -> b) -> f a -> f b
+    
     """
 
 def whatsit():
