@@ -265,7 +265,7 @@ import builtins
 
 def bangbang(list_of_a, integer) -> 'a':
     """(!!) :: [a] -> Int -> a
-    
+    get by index (zero based)
     """
     return list_of_a[integer]
   
@@ -509,8 +509,10 @@ def and_(
     """
     return builtins.all(a)
     
-    
-any :: Foldable t => (a -> Bool) -> t a -> Bool
+def any(fn, a):
+    """any :: Foldable t => (a -> Bool) -> t a -> Bool"""
+    return builtins.any(fn(i) for i in a)
+  
 appendFile :: FilePath -> String -> IO ()
 asTypeOf :: a -> a -> a
 break :: (a -> Bool) -> [a] -> ([a], [a])
@@ -524,7 +526,11 @@ dropWhile :: (a -> Bool) -> [a] -> [a]
 either :: (a -> c) -> (b -> c) -> Either a b -> c
 error :: [Char] -> a
 even :: Integral a => a -> Bool
-filter :: (a -> Bool) -> [a] -> [a]
+  
+def filter(fn, a_list):
+    """filter :: (a -> Bool) -> [a] -> [a]"""
+    return (i for i in a_list if fn(i))
+
 flip :: (a -> b -> c) -> b -> a -> c
 fromIntegral :: (Integral a, Num b) => a -> b
 fst :: (a, b) -> a
@@ -541,7 +547,11 @@ iterate :: (a -> a) -> a -> [a]
 last :: [a] -> a
 lcm :: Integral a => a -> a -> a
 lex :: ReadS String
-lines :: String -> [String]
+
+def lines(a_string):
+    """lines :: String -> [String]"""
+    return a_string.splitlines()
+  
 lookup :: Eq a => a -> [(a, b)] -> Maybe b
 map :: (a -> b) -> [a] -> [b]
 mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
@@ -575,27 +585,116 @@ showChar :: Char -> ShowS
 showParen :: Bool -> ShowS -> ShowS
 showString :: String -> ShowS
 shows :: Show a => a -> ShowS
-snd :: (a, b) -> b
+  
+def snd(a_tuple):
+    """snd :: (a, b) -> b"""
+    return a_tuple[1]
+
 span :: (a -> Bool) -> [a] -> ([a], [a])
 splitAt :: Int -> [a] -> ([a], [a])
 subtract :: Num a => a -> a -> a
-tail :: [a] -> [a]
-take :: Int -> [a] -> [a]
-takeWhile :: (a -> Bool) -> [a] -> [a]
+
+def tail(a_list):
+    """tail :: [a] -> [a]"""
+    try:
+        return a_list[1:]
+    except Exception: #assume an iterator (lazy) instead of a list
+        it = builtins.iter(a_list)
+        next(it)
+        return it
+
+def take(i, a_list):
+    """take :: Int -> [a] -> [a]"""
+    return a_list[:i]
+ 
+def takewhile(fn, a_list):
+    """takeWhile :: (a -> Bool) -> [a] -> [a]"""
+    for item in a_list:
+        if fn(item):
+            yield item
+        else:
+            break
+    
 uncurry :: (a -> b -> c) -> (a, b) -> c
 undefined :: a
-unlines :: [String] -> String
-until :: (a -> Bool) -> (a -> a) -> a -> a
-unwords :: [String] -> String
-unzip :: [(a, b)] -> ([a], [b])
-unzip3 :: [(a, b, c)] -> ([a], [b], [c])
-userError :: String -> IOError
-words :: String -> [String]
-writeFile :: FilePath -> String -> IO ()
-zip :: [a] -> [b] -> [(a, b)]
-zip3 :: [a] -> [b] -> [c] -> [(a, b, c)]
-zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
-zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
-(||) :: Bool -> Bool -> Bool
+  
+def unlines(list_of_strings):
+    """unlines :: [String] -> String"""
+    return ''.join([s  + '\n' for s in list_of_strings])
+
+def until(p, f, a):
+    """-- | @'until' p f@ yields the result of applying @f@ until @p@ holds.
+    until                   :: (a -> Bool) -> (a -> a) -> a -> a
+    until p f = go
+      where
+        go x | p x          = x
+             | otherwise    = go (f x)
+    recursively in python (likely less performant than implementation):
+    def go(x):
+        if p(x):
+            return x
+        else:
+            return go(f(x))
+    return go(a)
+    """
+    while not p(a):
+        a = f(a)
+    return a
+        
+def unwords(list_of_strings):
+    """unwords :: [String] -> String"""
+    return ' '.join(list_of_strings)
+  
+def unzip(list_of_tuples):
+    """unzip :: [(a, b)] -> ([a], [b])"""
+    list1, list2 = [], []
+    for a, b in list_of_tuples:
+        list1.append(a)
+        list2.append(b)
+    return list1, list2
+  
+def unzip3(list_of_tuples):
+    """unzip3 :: [(a, b, c)] -> ([a], [b], [c])"""
+    list1, list2, list3 = [], [], []
+    for a, b, c in list_of_tuples:
+        list1.append(a)
+        list2.append(b)
+        list3.append(c)
+    return list1, list2, list3
+
+def userError(a_string):
+    """userError :: String -> IOError"""
+    raise Exception(a_string) # I suppose, uncertain right now...
+
+def words(a_string):
+    """words :: String -> [String]"""
+    return a_string.split()
+
+def writeFile(FilePath, a_string):
+    """writeFile :: FilePath -> String -> IO ()"""
+    with open(FilePath, 'w') as file:
+        file.write(a_string)
+    # return None # a function that has no return returns None implicitly
+
+def zip(a, b):
+    """zip :: [a] -> [b] -> [(a, b)]"""
+    return builtins.zip(a, b)
+
+def zip3(a, b, c):
+    """zip3 :: [a] -> [b] -> [c] -> [(a, b, c)]"""
+    return builtins.zip(a, b, c)
+
+def zipWith(fn, a, b):
+    """zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]"""
+    return (fn(i, j) for i, j in zip(a, b))
+
+def zipWith3(fn, a, b, c):
+    """zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+    """
+    return (fn(i, j, k) for i, j, k in zip(a, b, c))
+
+def or_(bool0, bool1):
+    """(||) :: Bool -> Bool -> Bool"""
+    return bool0 or bool1
 
 
