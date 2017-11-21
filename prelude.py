@@ -263,9 +263,9 @@ zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
 import builtins
 
 
-def bangbang(list_of_a, integer) -> 'a':
+def index(list_of_a, integer) -> 'a':
     """(!!) :: [a] -> Int -> a
-    get by index (zero based)
+    "bang-bang" - get by index (zero based)
     """
     return list_of_a[integer]
   
@@ -321,23 +321,34 @@ def concat(list_of_as, another_list_of_as):
     """
     return list_of_as + another_list_of_as
 
-def dot(fn_b_c, fn_a_b, a) -> 'c':
+def compose(fn_b_c, fn_a_b, a) -> 'c':
     """(.) :: (b -> c) -> (a -> b) -> a -> c
     (.) f g = \x -> f (g x)
     f . g x
-    compose operator. Haskel uses infix:
-    
+    also called "dot". Haskel uses infix.
     """
     return fn_b_c(fn_a_b(a))
 
-def whattttsit():
+def infix_fmap():
     """(<$>) :: Functor f => (a -> b) -> f a -> f b
-    
+    An infix synonym for fmap.
+
+    The name of this operator is an allusion to $. Note the similarities between their types:
+
+     ($)  ::              (a -> b) ->   a ->   b
+    (<$>) :: Functor f => (a -> b) -> f a -> f b
+
+    Whereas $ is function application, <$> is function application lifted over a Functor.
+    "the applicative"
     """
 
-def whatsit():
+def leftbind(fn, a_list):
     """(=<<) :: Monad m => (a -> m b) -> m a -> m b
+    (=<<) :: Monad m => (a -> m b) -> m a -> m b infixr 1
+
+    Same as >>=, but with the arguments interchanged.
     """
+    return (fn(a) for a in a_list)
     
 class Functor f => Applicative (f :: * -> *) where
   pure :: a -> f a
@@ -427,7 +438,14 @@ class (Real a, Enum a) => Integral a where
   toInteger :: a -> Integer
 data Maybe a = Nothing | Just a
 class Applicative m => Monad (m :: * -> *) where
-  (>>=) :: m a -> (a -> m b) -> m b
+                    
+def bind():
+    """  (>>=) :: m a -> (a -> m b) -> m b
+    The list monad operations are traditionally 
+    described in terms of concatMap:
+    xs >>= f = concatMap f xs
+    """
+                    
   (>>) :: m a -> m b -> m b
   return :: a -> m a
   fail :: String -> m a
@@ -515,7 +533,14 @@ def any(fn, a):
   
 appendFile :: FilePath -> String -> IO ()
 asTypeOf :: a -> a -> a
-break :: (a -> Bool) -> [a] -> ([a], [a])
+
+def break_(fn, a_list):
+    """break :: (a -> Bool) -> [a] -> ([a], [a])"""
+    for i, elem in enumerate(a_list):
+        if not fn(elem):
+            break
+    return a_list[:i], a_list[i:]
+
 concat :: Foldable t => t [a] -> [a]
 concatMap :: Foldable t => (a -> [b]) -> t a -> [b]
 const :: a -> b -> a
@@ -531,15 +556,31 @@ def filter(fn, a_list):
     """filter :: (a -> Bool) -> [a] -> [a]"""
     return (i for i in a_list if fn(i))
 
-flip :: (a -> b -> c) -> b -> a -> c
+def flip(fn):
+    """flip :: (a -> b -> c) -> b -> a -> c"""
+    def inner(b, a, c):
+        return fn(a, b, c)
+    return inner
+
 fromIntegral :: (Integral a, Num b) => a -> b
-fst :: (a, b) -> a
+
+def fst(a_tuple):
+    """fst :: (a, b) -> a"""
+    return a_tuple[0]
+
 gcd :: Integral a => a -> a -> a
 getChar :: IO Char
 getContents :: IO String
 getLine :: IO String
-head :: [a] -> a
-id :: a -> a
+
+def head(a_list):
+    """head :: [a] -> a"""
+    return a_list[0]
+
+def id(a):
+    """id :: a -> a"""
+    return a
+
 init :: [a] -> [a]
 interact :: (String -> String) -> IO ()
 ioError :: IOError -> IO a
@@ -556,12 +597,24 @@ lookup :: Eq a => a -> [(a, b)] -> Maybe b
 map :: (a -> b) -> [a] -> [b]
 mapM_ :: (Foldable t, Monad m) => (a -> m b) -> t a -> m ()
 maybe :: b -> (a -> b) -> Maybe a -> b
-not :: Bool -> Bool
+
+def not_(a_bool):
+    """not :: Bool -> Bool"""
+    return not a_bool
+  
 notElem :: (Foldable t, Eq a) => a -> t a -> Bool
 odd :: Integral a => a -> Bool
-or :: Foldable t => t Bool -> Bool
+  
+def or_(t_sequence):
+    """or :: Foldable t => t Bool -> Bool"""
+    return builtins.any(t_sequence)
+
 otherwise :: Bool
-print :: Show a => a -> IO ()
+  
+def print(a):
+    """print :: Show a => a -> IO ()"""
+    builtins.print(a)
+
 putChar :: Char -> IO ()
 putStr :: String -> IO ()
 putStrLn :: String -> IO ()
@@ -579,20 +632,45 @@ scanl :: (b -> a -> b) -> b -> [a] -> [b]
 scanl1 :: (a -> a -> a) -> [a] -> [a]
 scanr :: (a -> b -> b) -> b -> [a] -> [b]
 scanr1 :: (a -> a -> a) -> [a] -> [a]
-seq :: a -> b -> b
+
+def seq(a, b):
+    """seq :: a -> b -> b
+    """
+    return b
+  
+
 sequence_ :: (Foldable t, Monad m) => t (m a) -> m ()
+
+  
 showChar :: Char -> ShowS
 showParen :: Bool -> ShowS -> ShowS
 showString :: String -> ShowS
-shows :: Show a => a -> ShowS
+
+def shows(a):
+    """shows :: Show a => a -> ShowS
+    
+    Not everything in Haskell has conversion to str,
+    but in Python, we fallback to __repr__."""
+    return lambda append_string: str(a) + append_string
   
 def snd(a_tuple):
     """snd :: (a, b) -> b"""
     return a_tuple[1]
 
-span :: (a -> Bool) -> [a] -> ([a], [a])
-splitAt :: Int -> [a] -> ([a], [a])
-subtract :: Num a => a -> a -> a
+def span(fn, a_list):
+    """span :: (a -> Bool) -> [a] -> ([a], [a])"""
+    for i, elem in enumerate(a_list):
+         if fn(elem):
+             break
+    return a_list[:i], a_list[i:]
+  
+def splitAt(n, a_list):
+    """splitAt :: Int -> [a] -> ([a], [a])"""
+    return a_list[:n], a_list[n:]
+
+def subtract(a, b):
+    """subtract :: Num a => a -> a -> a"""
+    return a - b
 
 def tail(a_list):
     """tail :: [a] -> [a]"""
@@ -614,8 +692,14 @@ def takewhile(fn, a_list):
             yield item
         else:
             break
+
+def uncurry(fn, a_b_tuple):
+    """uncurry :: (a -> b -> c) -> (a, b) -> c
     
-uncurry :: (a -> b -> c) -> (a, b) -> c
+    In Python, fn(*arg) is idiomatic for applying an 
+    iterable of arguments positionally to a function.
+    """
+    return fn(*a_b_tuple)
 undefined :: a
   
 def unlines(list_of_strings):
@@ -685,15 +769,23 @@ def zip3(a, b, c):
     return builtins.zip(a, b, c)
 
 def zipWith(fn, a, b):
-    """zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]"""
+    """zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+    
+    You can actually do below I (Aaron Hall) prefer 
+    people to use generator expressions to
+    map and filter:
+    return map(fn, a, b) 
+    """
     return (fn(i, j) for i, j in zip(a, b))
 
 def zipWith3(fn, a, b, c):
     """zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+    Same as zipWith, can do:
+    return map(fn, a, b, c)
     """
     return (fn(i, j, k) for i, j, k in zip(a, b, c))
 
-def or_(bool0, bool1):
+def _or_(bool0, bool1):
     """(||) :: Bool -> Bool -> Bool"""
     return bool0 or bool1
 
